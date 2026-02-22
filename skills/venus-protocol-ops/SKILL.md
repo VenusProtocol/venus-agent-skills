@@ -60,8 +60,14 @@ Use this structure:
 - Default to conservative thresholds when uncertain.
 - Treat this as educational/risk tooling, not financial advice.
 
+## Quick usage
+- One-command market check: `python scripts/venus_check.py --symbol vUSDT`
+- Market + risk check: `python scripts/venus_check.py --symbol vUSDT --wallet 0x... --weighted-collateral 1500 --debt 1000`
+- What-if borrow: `python scripts/venus_check.py --symbol vUSDT --wallet 0x... --weighted-collateral 1500 --debt 1000 --extra-borrow 120`
+
 ## References
 - Protocol overview: `references/protocol-overview.md`
 - Risk thresholds and formulas: `references/risk-rules.md`
 - Contract/address notes: `references/bnbchain-contracts.md`
 - Terminology: `references/glossary.md`
+- CLI cookbook: `references/quick-commands.md`
