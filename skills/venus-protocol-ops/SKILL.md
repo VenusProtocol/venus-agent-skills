@@ -21,9 +21,12 @@ If user asks for onchain execution, pause and request explicit confirmation + ex
 
 ### 2) Collect data
 Use scripts first:
-- `scripts/fetch_markets.py` for market snapshot
-- `scripts/check_wallet_exposure.py` for wallet summary
+- `scripts/fetch_markets.py` for market snapshot (official API base: `https://api.venus.io`)
+- `scripts/check_wallet_exposure.py` for wallet summary (API mode or manual mode)
 - `scripts/simulate_borrow.py` for hypothetical borrow impact
+
+Example market query:
+- `python scripts/fetch_markets.py --chain-id 56 --limit 200`
 
 If API is unavailable, continue with transparent assumptions and mark output as estimate.
 
