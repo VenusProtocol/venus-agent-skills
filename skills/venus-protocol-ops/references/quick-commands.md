@@ -50,6 +50,22 @@ node scripts/venus_deposit.js \
   --confirm YES
 ```
 
+## 8) Withdraw preview (safe, no transaction)
+```bash
+node scripts/venus_withdraw.js --asset vUSDC --amount 1 --wallet 0xYourWallet --mode simulate
+```
+
+## 9) Withdraw broadcast (real tx, explicit confirmation)
+```bash
+node scripts/venus_withdraw.js \
+  --asset vUSDC \
+  --amount 1 \
+  --private-key 0xYourPrivateKey \
+  --by underlying \
+  --mode broadcast \
+  --confirm YES
+```
+
 ## Notes
 - Auto mode reads onchain balances via `getAccountSnapshot`.
 - Manual mode expects USD values for `weighted-collateral` and `debt`.

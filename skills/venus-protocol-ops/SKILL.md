@@ -26,6 +26,7 @@ Use scripts first:
 - `scripts/check_wallet_exposure.py` for manual/API fallback wallet summary
 - `scripts/simulate_borrow.py` for hypothetical borrow impact
 - `scripts/venus_deposit.js` for deposit preview/broadcast flow (approve + mint)
+- `scripts/venus_withdraw.js` for withdraw preview/broadcast flow (redeem / redeemUnderlying)
 
 Example market query:
 - `python scripts/fetch_markets.py --chain-id 56 --limit 200`
