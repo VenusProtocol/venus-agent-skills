@@ -22,7 +22,8 @@ If user asks for onchain execution, pause and request explicit confirmation + ex
 ### 2) Collect data
 Use scripts first:
 - `scripts/fetch_markets.py` for market snapshot (official API base: `https://api.venus.io`)
-- `scripts/check_wallet_exposure.py` for wallet summary (API mode or manual mode)
+- `scripts/wallet_onchain_exposure.py` for real wallet onchain exposure
+- `scripts/check_wallet_exposure.py` for manual/API fallback wallet summary
 - `scripts/simulate_borrow.py` for hypothetical borrow impact
 
 Example market query:
@@ -62,8 +63,9 @@ Use this structure:
 
 ## Quick usage
 - One-command market check: `python scripts/venus_check.py --symbol vUSDT`
-- Market + risk check: `python scripts/venus_check.py --symbol vUSDT --wallet 0x... --weighted-collateral 1500 --debt 1000`
-- What-if borrow: `python scripts/venus_check.py --symbol vUSDT --wallet 0x... --weighted-collateral 1500 --debt 1000 --extra-borrow 120`
+- Market + auto wallet risk check: `python scripts/venus_check.py --symbol vUSDT --wallet 0x...`
+- What-if borrow (auto wallet): `python scripts/venus_check.py --symbol vUSDT --wallet 0x... --extra-borrow 120`
+- Manual fallback: `python scripts/venus_check.py --symbol vUSDT --wallet 0x... --weighted-collateral 1500 --debt 1000`
 
 ## References
 - Protocol overview: `references/protocol-overview.md`

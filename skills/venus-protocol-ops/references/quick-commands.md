@@ -5,7 +5,23 @@
 python scripts/venus_check.py --symbol vUSDT
 ```
 
-## 2) Check market + your current risk (manual exposure)
+## 2) Auto-read wallet exposure onchain (no manual numbers)
+```bash
+python scripts/venus_check.py \
+  --symbol vUSDT \
+  --wallet 0xYourWallet
+```
+
+## 3) Auto-read wallet + what-if borrow simulation
+```bash
+python scripts/venus_check.py \
+  --symbol vUSDT \
+  --wallet 0xYourWallet \
+  --extra-borrow 120 \
+  --target-health 1.30
+```
+
+## 4) Manual mode (fallback)
 ```bash
 python scripts/venus_check.py \
   --symbol vUSDT \
@@ -14,18 +30,7 @@ python scripts/venus_check.py \
   --debt 1000
 ```
 
-## 3) What-if borrow simulation
-```bash
-python scripts/venus_check.py \
-  --symbol vUSDT \
-  --wallet 0xYourWallet \
-  --weighted-collateral 1500 \
-  --debt 1000 \
-  --extra-borrow 120 \
-  --target-health 1.30
-```
-
 ## Notes
-- `weighted-collateral` and `debt` are in USD.
-- Until wallet position API is finalized, use manual values for reliable simulations.
+- Auto mode reads onchain balances via `getAccountSnapshot`.
+- Manual mode expects USD values for `weighted-collateral` and `debt`.
 - BNB Chain mainnet uses `--chain-id 56` (default).

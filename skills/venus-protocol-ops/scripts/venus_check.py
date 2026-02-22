@@ -30,6 +30,8 @@ def main():
     p.add_argument("--wallet", default=None)
     p.add_argument("--weighted-collateral", type=float, default=None)
     p.add_argument("--debt", type=float, default=None)
+    p.add_argument("--rpc-url", default="https://bsc-dataseed.binance.org/")
+    p.add_argument("--onchain-limit", type=int, default=120, help="Max markets scanned for onchain wallet mode")
 
     # Optional what-if
     p.add_argument("--extra-borrow", type=float, default=None)
@@ -45,7 +47,36 @@ def main():
         "simulation": None,
     }
 
-    if args.weighted_collateral is not None and args.debt is not None:
+    # Mode 1: onchain auto wallet read
+    if args.wallet and args.weighted_collateral is None and args.debt is None:
+        wallet_raw = run_py(
+            "wallet_onchain_exposure.py",
+            [
+                "--wallet", args.wallet,
+                "--chain-id", str(args.chain_id),
+                "--rpc-url", args.rpc_url,
+                "--limit", str(args.onchain_limit),
+            ],
+        )
+        wallet_obj = json.loads(wallet_raw)
+        report["wallet"] = wallet_obj
+
+        if args.extra_borrow is not None:
+            wc = wallet_obj["summary"]["weightedCollateralUsd"]
+            debt = wallet_obj["summary"]["totalBorrowUsd"]
+            sim_raw = run_py(
+                "simulate_borrow.py",
+                [
+                    "--weighted-collateral", str(wc),
+                    "--current-debt", str(debt),
+                    "--extra-borrow", str(args.extra_borrow),
+                    "--target-health", str(args.target_health),
+                ],
+            )
+            report["simulation"] = sim_raw
+
+    # Mode 2: manual wallet exposure inputs
+    elif args.weighted_collateral is not None and args.debt is not None:
         wallet_raw = run_py(
             "check_wallet_exposure.py",
             [
