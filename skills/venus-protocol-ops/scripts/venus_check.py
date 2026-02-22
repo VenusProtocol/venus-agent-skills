@@ -4,8 +4,9 @@
 Features:
 - Fetch live market data (BNB chain by default)
 - Optional symbol-specific output
-- Optional wallet risk estimate (manual weighted collateral + debt)
+- Optional wallet risk estimate (onchain auto or manual)
 - Optional what-if borrow simulation
+- Optional concise English summary output
 """
 import argparse
 import json
@@ -19,6 +20,44 @@ def run_py(script: str, args: list[str]) -> str:
     cmd = ["python3", str(ROOT / script), *args]
     out = subprocess.check_output(cmd, text=True)
     return out.strip()
+
+
+def format_money(v):
+    if v is None:
+        return "n/a"
+    v = float(v)
+    if v >= 1_000_000_000:
+        return f"${v/1_000_000_000:.2f}B"
+    if v >= 1_000_000:
+        return f"${v/1_000_000:.2f}M"
+    if v >= 1_000:
+        return f"${v/1_000:.2f}K"
+    return f"${v:.2f}"
+
+
+def summarize_en(report: dict) -> str:
+    m = report.get("market") or {}
+    lines = []
+    lines.append(f"Venus {m.get('symbol', 'market')} snapshot")
+    lines.append(
+        f"- Supply APY: {float(m.get('supplyApy', 0.0)):.4f}% | Borrow APY: {float(m.get('borrowApy', 0.0)):.4f}%"
+    )
+    lines.append(
+        f"- Liquidity: {format_money(m.get('liquidityUsd'))} | Utilization: {float(m.get('utilization', 0.0))*100:.2f}%"
+    )
+
+    w = report.get("wallet")
+    if w and isinstance(w, dict):
+        s = w.get("summary", w)
+        lines.append(
+            f"- Wallet risk: {s.get('risk', 'n/a')} | Health: {s.get('health', 'n/a')} | Debt: {format_money(s.get('totalBorrowUsd', s.get('debtUsd')))}"
+        )
+
+    sim = report.get("simulation")
+    if sim:
+        lines.append(f"- What-if: {sim}")
+
+    return "\n".join(lines)
 
 
 def main():
@@ -36,6 +75,11 @@ def main():
     # Optional what-if
     p.add_argument("--extra-borrow", type=float, default=None)
     p.add_argument("--target-health", type=float, default=1.30)
+
+    # Output options
+    p.add_argument("--output", choices=["json", "brief"], default="json")
+    p.add_argument("--lang", choices=["en"], default="en")
+
     args = p.parse_args()
 
     market_raw = run_py("fetch_markets.py", ["--chain-id", str(args.chain_id), "--limit", "200", "--symbol", args.symbol])
@@ -99,7 +143,10 @@ def main():
             )
             report["simulation"] = sim_raw
 
-    print(json.dumps(report, indent=2))
+    if args.output == "brief":
+        print(summarize_en(report))
+    else:
+        print(json.dumps(report, indent=2))
 
 
 if __name__ == "__main__":

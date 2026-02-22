@@ -66,6 +66,7 @@ Use this structure:
 - Market + auto wallet risk check: `python scripts/venus_check.py --symbol vUSDT --wallet 0x...`
 - What-if borrow (auto wallet): `python scripts/venus_check.py --symbol vUSDT --wallet 0x... --extra-borrow 120`
 - Manual fallback: `python scripts/venus_check.py --symbol vUSDT --wallet 0x... --weighted-collateral 1500 --debt 1000`
+- English brief mode: `python scripts/venus_check.py --symbol vUSDT --wallet 0x... --output brief --lang en`
 
 ## References
 - Protocol overview: `references/protocol-overview.md`

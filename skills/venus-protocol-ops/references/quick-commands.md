@@ -30,7 +30,13 @@ python scripts/venus_check.py \
   --debt 1000
 ```
 
+## 5) English brief output (Telegram-friendly)
+```bash
+python scripts/venus_check.py --symbol vUSDT --wallet 0xYourWallet --output brief --lang en
+```
+
 ## Notes
 - Auto mode reads onchain balances via `getAccountSnapshot`.
 - Manual mode expects USD values for `weighted-collateral` and `debt`.
 - BNB Chain mainnet uses `--chain-id 56` (default).
+- `--output brief --lang en` returns concise English summary lines.
