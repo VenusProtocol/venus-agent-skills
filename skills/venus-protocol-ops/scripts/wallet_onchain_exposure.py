@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Read Venus wallet exposure from chain via vToken getAccountSnapshot.
 
-No private key required. Read-only JSON-RPC calls.
+3.2 improvements:
+- Robust numeric parsing for empty-string API fields
+- Auto scan strategy: listed + high-liquidity markets first
 """
 import argparse
 import json
@@ -13,12 +15,11 @@ getcontext().prec = 50
 
 DEFAULT_API = "https://api.venus.io"
 DEFAULT_RPC = "https://bsc-dataseed.binance.org/"
-
 SEL_GET_ACCOUNT_SNAPSHOT = "c37f68e2"  # getAccountSnapshot(address)
 
 
 def api_get(url: str):
-    req = urllib.request.Request(url, headers={"User-Agent": "venus-skill/1.2"})
+    req = urllib.request.Request(url, headers={"User-Agent": "venus-skill/1.3"})
     with urllib.request.urlopen(req, timeout=12) as r:
         return json.loads(r.read().decode("utf-8"))
 
@@ -53,6 +54,19 @@ def decode_uint256_words(hexdata: str):
     return [int(raw[i : i + 64], 16) for i in range(0, len(raw), 64)]
 
 
+def safe_decimal(value, scale: int = 0) -> Decimal:
+    if value is None:
+        n = Decimal("0")
+    elif isinstance(value, (int, float, Decimal)):
+        n = Decimal(str(value))
+    elif isinstance(value, str):
+        s = value.strip()
+        n = Decimal(s) if s else Decimal("0")
+    else:
+        n = Decimal("0")
+    return n / (Decimal(10) ** scale) if scale > 0 else n
+
+
 def classify(health: Decimal) -> str:
     if health < Decimal("1.15"):
         return "HIGH"
@@ -61,13 +75,22 @@ def classify(health: Decimal) -> str:
     return "LOW"
 
 
+def market_sort_key(m: dict):
+    listed = 1 if m.get("isListed") else 0
+    liq = safe_decimal(m.get("liquidityCents"), 2)
+    return (listed, liq)
+
+
 def main():
     p = argparse.ArgumentParser(description="Onchain Venus wallet exposure")
     p.add_argument("--wallet", required=True)
     p.add_argument("--chain-id", type=int, default=56)
     p.add_argument("--api-base", default=DEFAULT_API)
     p.add_argument("--rpc-url", default=DEFAULT_RPC)
-    p.add_argument("--limit", type=int, default=300)
+    p.add_argument("--limit", type=int, default=300, help="Markets fetched from API")
+    p.add_argument("--scan-limit", type=int, default=120, help="Markets scanned onchain")
+    p.add_argument("--strategy", choices=["auto", "all"], default="auto")
+    p.add_argument("--min-liquidity-usd", type=float, default=50000.0)
     args = p.parse_args()
 
     wallet = args.wallet
@@ -79,12 +102,19 @@ def main():
     markets_resp = api_get(markets_url)
     markets = markets_resp.get("result", [])
 
+    if args.strategy == "auto":
+        filt = [m for m in markets if safe_decimal(m.get("liquidityCents"), 2) >= Decimal(str(args.min_liquidity_usd))]
+        filt.sort(key=market_sort_key, reverse=True)
+        scan_markets = filt[: args.scan_limit]
+    else:
+        scan_markets = markets[: args.scan_limit]
+
     positions = []
     total_supply_usd = Decimal("0")
     total_borrow_usd = Decimal("0")
     weighted_collateral_usd = Decimal("0")
 
-    for m in markets:
+    for m in scan_markets:
         vtoken = m.get("address")
         if not vtoken:
             continue
@@ -100,15 +130,11 @@ def main():
             continue
 
         err, token_balance, borrow_balance, exchange_rate = words[:4]
-        if err != 0:
+        if err != 0 or (token_balance == 0 and borrow_balance == 0):
             continue
 
-        # Skip empty markets for this wallet
-        if token_balance == 0 and borrow_balance == 0:
-            continue
-
-        underlying_decimals = int(m.get("underlyingDecimal") or 18)
-        price_usd = Decimal(str(float(m.get("tokenPriceCents", 0.0)) / 100.0))
+        underlying_decimals = int(safe_decimal(m.get("underlyingDecimal"))) if m.get("underlyingDecimal") not in (None, "") else 18
+        price_usd = safe_decimal(m.get("tokenPriceCents"), 2)
 
         supplied_underlying = (
             Decimal(token_balance) * Decimal(exchange_rate) / (Decimal(10) ** 18) / (Decimal(10) ** underlying_decimals)
@@ -118,8 +144,8 @@ def main():
         supply_usd = supplied_underlying * price_usd
         borrow_usd = borrowed_underlying * price_usd
 
-        cf = Decimal(str(float(m.get("collateralFactorMantissa", 0.0)))) / (Decimal(10) ** 18)
-        lt = Decimal(str(float(m.get("liquidationThresholdMantissa", 0.0)))) / (Decimal(10) ** 18)
+        cf = safe_decimal(m.get("collateralFactorMantissa"), 18)
+        lt = safe_decimal(m.get("liquidationThresholdMantissa"), 18)
         weight = lt if lt > 0 else cf
 
         weighted_collateral_usd += supply_usd * weight
@@ -145,9 +171,12 @@ def main():
     out = {
         "wallet": wallet,
         "chainId": args.chain_id,
-        "source": {
-            "markets": markets_url,
-            "rpc": args.rpc_url,
+        "source": {"markets": markets_url, "rpc": args.rpc_url},
+        "scan": {
+            "strategy": args.strategy,
+            "scanLimit": args.scan_limit,
+            "minLiquidityUsd": args.min_liquidity_usd,
+            "scannedMarkets": len(scan_markets),
         },
         "summary": {
             "totalSupplyUsd": float(round(total_supply_usd, 6)),

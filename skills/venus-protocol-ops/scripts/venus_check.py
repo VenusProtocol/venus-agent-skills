@@ -55,7 +55,7 @@ def main():
                 "--wallet", args.wallet,
                 "--chain-id", str(args.chain_id),
                 "--rpc-url", args.rpc_url,
-                "--limit", str(args.onchain_limit),
+                "--scan-limit", str(args.onchain_limit),
             ],
         )
         wallet_obj = json.loads(wallet_raw)
