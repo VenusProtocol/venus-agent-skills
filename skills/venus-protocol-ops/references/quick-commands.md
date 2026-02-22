@@ -35,8 +35,24 @@ python scripts/venus_check.py \
 python scripts/venus_check.py --symbol vUSDT --wallet 0xYourWallet --output brief --lang en
 ```
 
+## 6) Deposit preview (safe, no transaction)
+```bash
+node scripts/venus_deposit.js --asset vUSDT --amount 10 --wallet 0xYourWallet --mode simulate
+```
+
+## 7) Deposit broadcast (real tx, explicit confirmation)
+```bash
+node scripts/venus_deposit.js \
+  --asset vUSDT \
+  --amount 10 \
+  --private-key 0xYourPrivateKey \
+  --mode broadcast \
+  --confirm YES
+```
+
 ## Notes
 - Auto mode reads onchain balances via `getAccountSnapshot`.
 - Manual mode expects USD values for `weighted-collateral` and `debt`.
 - BNB Chain mainnet uses `--chain-id 56` (default).
 - `--output brief --lang en` returns concise English summary lines.
+- Deposit script defaults to simulation; broadcast requires `--confirm YES`.

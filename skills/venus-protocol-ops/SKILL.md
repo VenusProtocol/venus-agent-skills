@@ -17,7 +17,7 @@ Map request into one of these modes:
 - **What-if simulation**: estimate risk after a proposed borrow/supply/repay
 - **Execution planning**: prepare step-by-step actions without broadcasting tx
 
-If user asks for onchain execution, pause and request explicit confirmation + exact parameters.
+If user asks for onchain execution, pause and request explicit confirmation + exact parameters. Use simulation first, then broadcast only after user confirms.
 
 ### 2) Collect data
 Use scripts first:
@@ -25,6 +25,7 @@ Use scripts first:
 - `scripts/wallet_onchain_exposure.py` for real wallet onchain exposure
 - `scripts/check_wallet_exposure.py` for manual/API fallback wallet summary
 - `scripts/simulate_borrow.py` for hypothetical borrow impact
+- `scripts/venus_deposit.js` for deposit preview/broadcast flow (approve + mint)
 
 Example market query:
 - `python scripts/fetch_markets.py --chain-id 56 --limit 200`
@@ -60,6 +61,7 @@ Use this structure:
 - Never hide data gaps; explicitly note stale/missing data.
 - Default to conservative thresholds when uncertain.
 - Treat this as educational/risk tooling, not financial advice.
+- For real transactions: run simulate mode first; require explicit confirmation for broadcast.
 
 ## Quick usage
 - One-command market check: `python scripts/venus_check.py --symbol vUSDT`
