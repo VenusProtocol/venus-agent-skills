@@ -66,9 +66,40 @@ node scripts/venus_withdraw.js \
   --confirm YES
 ```
 
+## 10) Borrow preview
+```bash
+node scripts/venus_borrow.js --asset vUSDT --amount 1 --wallet 0xYourWallet --mode simulate
+```
+
+## 11) Borrow broadcast
+```bash
+node scripts/venus_borrow.js --asset vUSDT --amount 1 --private-key 0xYourPrivateKey --mode broadcast --confirm YES
+```
+
+## 12) Repay preview
+```bash
+node scripts/venus_repay.js --asset vUSDT --amount 1 --wallet 0xYourWallet --mode simulate
+```
+
+## 13) Repay broadcast
+```bash
+node scripts/venus_repay.js --asset vUSDT --amount 1 --private-key 0xYourPrivateKey --mode broadcast --confirm YES
+```
+
+## 14) Collateral enable/disable
+```bash
+node scripts/venus_collateral.js --asset vUSDT --action enable --wallet 0xYourWallet --mode simulate
+node scripts/venus_collateral.js --asset vUSDT --action disable --wallet 0xYourWallet --mode simulate
+```
+
+## 15) HF monitor
+```bash
+python scripts/hf_monitor.py --wallet 0xYourWallet --warn-hf 1.35 --critical-hf 1.15
+```
+
 ## Notes
 - Auto mode reads onchain balances via `getAccountSnapshot`.
 - Manual mode expects USD values for `weighted-collateral` and `debt`.
 - BNB Chain mainnet uses `--chain-id 56` (default).
 - `--output brief --lang en` returns concise English summary lines.
-- Deposit script defaults to simulation; broadcast requires `--confirm YES`.
+- Execution scripts default to simulation; broadcast requires `--confirm YES`.

@@ -27,6 +27,10 @@ Use scripts first:
 - `scripts/simulate_borrow.py` for hypothetical borrow impact
 - `scripts/venus_deposit.js` for deposit preview/broadcast flow (approve + mint)
 - `scripts/venus_withdraw.js` for withdraw preview/broadcast flow (redeem / redeemUnderlying)
+- `scripts/venus_borrow.js` for borrow preview/broadcast flow
+- `scripts/venus_repay.js` for repay preview/broadcast flow (approve + repayBorrow)
+- `scripts/venus_collateral.js` for collateral enable/disable (enterMarkets / exitMarket)
+- `scripts/hf_monitor.py` for threshold-based HF monitoring and advisory actions
 
 Example market query:
 - `python scripts/fetch_markets.py --chain-id 56 --limit 200`
