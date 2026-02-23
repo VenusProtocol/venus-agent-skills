@@ -16,6 +16,7 @@ getcontext().prec = 50
 DEFAULT_API = "https://api.venus.io"
 DEFAULT_RPC = "https://bsc-dataseed.binance.org/"
 SEL_GET_ACCOUNT_SNAPSHOT = "c37f68e2"  # getAccountSnapshot(address)
+SEL_MINTED_VAI = "2bc7e29e"  # mintedVAIs(address)
 
 
 def api_get(url: str):
@@ -166,6 +167,37 @@ def main():
             }
         )
 
+    # Venus VAI debt is tracked separately from vToken borrows (e.g., Core comptroller).
+    # Try mintedVAIs(address) on each unique comptroller and include non-zero debt.
+    comptrollers = sorted({m.get("poolComptroller") for m in scan_markets if m.get("poolComptroller")})
+    vai_debt_usd = Decimal("0")
+    for comp in comptrollers:
+        try:
+            ret = rpc_call(args.rpc_url, comp, "0x" + SEL_MINTED_VAI + pad_addr(wallet))
+            words = decode_uint256_words(ret)
+            if not words:
+                continue
+            minted_vai = Decimal(words[0]) / (Decimal(10) ** 18)
+            if minted_vai <= 0:
+                continue
+            # VAI is treated as ~1 USD peg for debt accounting.
+            borrow_usd = minted_vai
+            vai_debt_usd += borrow_usd
+            total_borrow_usd += borrow_usd
+            positions.append(
+                {
+                    "symbol": "VAI",
+                    "comptroller": comp,
+                    "borrowedUnderlying": float(round(minted_vai, 10)),
+                    "priceUsd": 1.0,
+                    "supplyUsd": 0.0,
+                    "borrowUsd": float(round(borrow_usd, 6)),
+                    "note": "Separate VAI debt via mintedVAIs(address)",
+                }
+            )
+        except Exception:
+            continue
+
     health = Decimal("Infinity") if total_borrow_usd == 0 else (weighted_collateral_usd / total_borrow_usd)
 
     out = {
@@ -181,11 +213,13 @@ def main():
         "summary": {
             "totalSupplyUsd": float(round(total_supply_usd, 6)),
             "totalBorrowUsd": float(round(total_borrow_usd, 6)),
+            "vaiDebtUsd": float(round(vai_debt_usd, 6)),
             "weightedCollateralUsd": float(round(weighted_collateral_usd, 6)),
             "health": ("inf" if health.is_infinite() else float(round(health, 6))),
             "risk": ("LOW" if health.is_infinite() else classify(health)),
             "notes": [
                 "Onchain balances via getAccountSnapshot",
+                "Includes separate VAI debt via mintedVAIs(address) when present",
                 "Weighted collateral uses liquidationThreshold when available, else collateralFactor",
             ],
         },
