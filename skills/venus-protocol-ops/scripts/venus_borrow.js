@@ -71,7 +71,7 @@ async function main(){
     if(a.confirm!=='YES') throw new Error('broadcast mode requires --confirm YES');
     const signer=new ethers.Wallet(a.privateKey, provider);
     const v=new ethers.Contract(market.address, VTOKEN_ABI, signer);
-    const tx=await v.borrow(amount);
+    const tx=await v['borrow(uint256)'](amount);
     const rc=await tx.wait();
     const borrowAfter=await vToken.borrowBalanceStored(wallet);
     const uBalAfter=await underlying.balanceOf(wallet);
