@@ -26,11 +26,11 @@ Use scripts first:
 - `scripts/check_wallet_exposure.py` for manual/API fallback wallet summary
 - `scripts/simulate_borrow.py` for hypothetical borrow impact
 - `scripts/venus_deposit.js` for deposit preview/broadcast flow (approve + mint)
-- `scripts/venus_withdraw.js` for withdraw preview/broadcast flow (redeem / redeemUnderlying)
+- `scripts/venus_withdraw.js` for withdraw preview/broadcast flow (redeem / redeemUnderlying) with post-withdraw HF prediction and safety line checks (default 1.2, user customizable)
 - `scripts/venus_borrow.js` for borrow preview/broadcast flow
 - `scripts/venus_repay.js` for repay preview/broadcast flow (approve + repayBorrow)
 - `scripts/venus_collateral.js` for collateral enable/disable (enterMarkets / exitMarket)
-- `scripts/hf_monitor.py` for threshold-based HF monitoring and advisory actions
+- `scripts/hf_monitor.py` for threshold-based HF monitoring and advisory actions (includes ACCOUNT_UNHEALTHY alert when HF < safety line, default 1.2)
 
 Example market query:
 - `python scripts/fetch_markets.py --chain-id 56 --limit 200`
@@ -67,6 +67,7 @@ Use this structure:
 - Default to conservative thresholds when uncertain.
 - Treat this as educational/risk tooling, not financial advice.
 - For real transactions: run simulate mode first; require explicit confirmation for broadcast.
+- For withdrawals: always predict post-withdraw HF; warn/block when predicted HF falls below safety line (default 1.2 unless user customizes).
 
 ## Quick usage
 - One-command market check: `python scripts/venus_check.py --symbol vUSDT`

@@ -50,20 +50,31 @@ node scripts/venus_deposit.js \
   --confirm YES
 ```
 
-## 8) Withdraw preview (safe, no transaction)
+## 8) Withdraw preview with HF safety prediction
 ```bash
-node scripts/venus_withdraw.js --asset vUSDC --amount 1 --wallet 0xYourWallet --mode simulate
+node scripts/venus_withdraw.js \
+  --asset vUSDC \
+  --amount 1 \
+  --wallet 0xYourWallet \
+  --safe-hf 1.2 \
+  --mode simulate
 ```
 
-## 9) Withdraw broadcast (real tx, explicit confirmation)
+## 9) Withdraw broadcast (blocks if predicted HF < safety line)
 ```bash
 node scripts/venus_withdraw.js \
   --asset vUSDC \
   --amount 1 \
   --private-key 0xYourPrivateKey \
   --by underlying \
+  --safe-hf 1.2 \
   --mode broadcast \
   --confirm YES
+```
+
+## 9.1) Force-risk withdraw (not recommended)
+```bash
+node scripts/venus_withdraw.js ... --force-risk YES
 ```
 
 ## 10) Borrow preview
@@ -92,9 +103,9 @@ node scripts/venus_collateral.js --asset vUSDT --action enable --wallet 0xYourWa
 node scripts/venus_collateral.js --asset vUSDT --action disable --wallet 0xYourWallet --mode simulate
 ```
 
-## 15) HF monitor
+## 15) HF monitor (custom safe line)
 ```bash
-python scripts/hf_monitor.py --wallet 0xYourWallet --warn-hf 1.35 --critical-hf 1.15
+python scripts/hf_monitor.py --wallet 0xYourWallet --safe-hf 1.2 --warn-hf 1.35 --critical-hf 1.15
 ```
 
 ## Notes
