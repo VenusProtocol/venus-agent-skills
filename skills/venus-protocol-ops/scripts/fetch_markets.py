@@ -5,6 +5,9 @@ import json
 import math
 import urllib.parse
 import urllib.request
+from pathlib import Path
+
+FILTER_CFG = Path(__file__).resolve().parent.parent / "references" / "pool-filter.json"
 
 DEFAULT_BASE = "https://api.venus.io"
 
@@ -49,6 +52,25 @@ def normalize_market(m: dict):
     }
 
 
+def load_filter_config(path: str | None):
+    cfg_path = Path(path) if path else FILTER_CFG
+    if not cfg_path.exists():
+        return {"defaultScope": "all", "coreComptrollersByChain": {}}
+    try:
+        return json.loads(cfg_path.read_text())
+    except Exception:
+        return {"defaultScope": "all", "coreComptrollersByChain": {}}
+
+
+def filter_markets(markets: list[dict], chain_id: int, scope: str, cfg: dict):
+    if scope == "all":
+        return markets
+    core = {x.lower() for x in (cfg.get("coreComptrollersByChain", {}).get(str(chain_id), []) or [])}
+    if not core:
+        return markets
+    return [m for m in markets if (m.get("poolComptrollerAddress") or "").lower() in core]
+
+
 def main():
     p = argparse.ArgumentParser(description="Fetch Venus market snapshot")
     p.add_argument("--base-url", default=DEFAULT_BASE)
@@ -56,7 +78,12 @@ def main():
     p.add_argument("--limit", type=int, default=200)
     p.add_argument("--page", type=int, default=0)
     p.add_argument("--symbol", default=None, help="Optional market symbol filter")
+    p.add_argument("--pool-scope", choices=["core", "all"], default=None, help="Default from config; core recommended")
+    p.add_argument("--pool-filter-config", default=None, help="Path to pool filter config JSON")
     args = p.parse_args()
+
+    cfg = load_filter_config(args.pool_filter_config)
+    scope = args.pool_scope or cfg.get("defaultScope", "all")
 
     query = {
         "chainId": args.chain_id,
@@ -68,11 +95,14 @@ def main():
 
     url = args.base_url.rstrip("/") + "/markets?" + urllib.parse.urlencode(query)
     data = fetch_json(url)
-    rows = [normalize_market(x) for x in data.get("result", [])]
+    raw_markets = data.get("result", [])
+    filtered = filter_markets(raw_markets, args.chain_id, scope, cfg)
+    rows = [normalize_market(x) for x in filtered]
 
     out = {
         "source": url,
-        "total": data.get("total", len(rows)),
+        "scope": scope,
+        "total": data.get("total", len(raw_markets)),
         "returned": len(rows),
         "markets": rows,
     }

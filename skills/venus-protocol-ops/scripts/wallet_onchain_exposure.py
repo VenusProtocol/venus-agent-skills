@@ -9,7 +9,10 @@ import argparse
 import json
 import urllib.parse
 import urllib.request
+from pathlib import Path
 from decimal import Decimal, getcontext
+
+FILTER_CFG = Path(__file__).resolve().parent.parent / "references" / "pool-filter.json"
 
 getcontext().prec = 50
 
@@ -82,6 +85,25 @@ def market_sort_key(m: dict):
     return (listed, liq)
 
 
+def load_filter_config(path: str | None):
+    cfg_path = Path(path) if path else FILTER_CFG
+    if not cfg_path.exists():
+        return {"defaultScope": "all", "coreComptrollersByChain": {}}
+    try:
+        return json.loads(cfg_path.read_text())
+    except Exception:
+        return {"defaultScope": "all", "coreComptrollersByChain": {}}
+
+
+def filter_markets(markets: list[dict], chain_id: int, scope: str, cfg: dict):
+    if scope == "all":
+        return markets
+    core = {x.lower() for x in (cfg.get("coreComptrollersByChain", {}).get(str(chain_id), []) or [])}
+    if not core:
+        return markets
+    return [m for m in markets if (m.get("poolComptrollerAddress") or "").lower() in core]
+
+
 def main():
     p = argparse.ArgumentParser(description="Onchain Venus wallet exposure")
     p.add_argument("--wallet", required=True)
@@ -92,7 +114,12 @@ def main():
     p.add_argument("--scan-limit", type=int, default=120, help="Markets scanned onchain")
     p.add_argument("--strategy", choices=["auto", "all"], default="auto")
     p.add_argument("--min-liquidity-usd", type=float, default=50000.0)
+    p.add_argument("--pool-scope", choices=["core", "all"], default=None)
+    p.add_argument("--pool-filter-config", default=None)
     args = p.parse_args()
+
+    cfg = load_filter_config(args.pool_filter_config)
+    scope = args.pool_scope or cfg.get("defaultScope", "all")
 
     wallet = args.wallet
     markets_url = (
@@ -102,6 +129,7 @@ def main():
     )
     markets_resp = api_get(markets_url)
     markets = markets_resp.get("result", [])
+    markets = filter_markets(markets, args.chain_id, scope, cfg)
 
     if args.strategy == "auto":
         filt = [m for m in markets if safe_decimal(m.get("liquidityCents"), 2) >= Decimal(str(args.min_liquidity_usd))]
@@ -206,6 +234,7 @@ def main():
         "source": {"markets": markets_url, "rpc": args.rpc_url},
         "scan": {
             "strategy": args.strategy,
+            "poolScope": scope,
             "scanLimit": args.scan_limit,
             "minLiquidityUsd": args.min_liquidity_usd,
             "scannedMarkets": len(scan_markets),

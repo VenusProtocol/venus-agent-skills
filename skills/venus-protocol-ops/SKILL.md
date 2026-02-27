@@ -21,7 +21,7 @@ If user asks for onchain execution, pause and request explicit confirmation + ex
 
 ### 2) Collect data
 Use scripts first:
-- `scripts/fetch_markets.py` for market snapshot (official API base: `https://api.venus.io`)
+- `scripts/fetch_markets.py` for market snapshot (official API base: `https://api.venus.io`, default scope: Core Pool only via `references/pool-filter.json`)
 - `scripts/wallet_onchain_exposure.py` for real wallet onchain exposure
 - `scripts/check_wallet_exposure.py` for manual/API fallback wallet summary
 - `scripts/simulate_borrow.py` for hypothetical borrow impact
@@ -33,7 +33,8 @@ Use scripts first:
 - `scripts/hf_monitor.py` for threshold-based HF monitoring and advisory actions (includes ACCOUNT_UNHEALTHY alert when HF < safety line, default 1.2)
 
 Example market query:
-- `python scripts/fetch_markets.py --chain-id 56 --limit 200`
+- `python scripts/fetch_markets.py --chain-id 56 --limit 200` (Core Pool default)
+- `python scripts/fetch_markets.py --chain-id 56 --limit 200 --pool-scope all` (all pools)
 
 If API is unavailable, continue with transparent assumptions and mark output as estimate.
 
