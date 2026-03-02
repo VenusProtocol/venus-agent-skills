@@ -77,9 +77,16 @@ Use this structure:
 - Manual fallback: `python scripts/venus_check.py --symbol vUSDT --wallet 0x... --weighted-collateral 1500 --debt 1000`
 - English brief mode: `python scripts/venus_check.py --symbol vUSDT --wallet 0x... --output brief --lang en`
 
+## Protocol separation
+- Venus Core scripts: `scripts/` root (e.g. `venus_*.js`, `fetch_markets.py`, `wallet_onchain_exposure.py`).
+- Flux (Fluid on BSC) scripts: `scripts/flux/`.
+- Choose protocol-specific scripts directly so other agents can route quickly without mixing workflows.
+
 ## References
 - Protocol overview: `references/protocol-overview.md`
 - Risk thresholds and formulas: `references/risk-rules.md`
 - Contract/address notes: `references/bnbchain-contracts.md`
 - Terminology: `references/glossary.md`
-- CLI cookbook: `references/quick-commands.md`
+- Venus CLI cookbook: `references/quick-commands.md`
+- Flux CLI cookbook: `references/flux-quick-commands.md`
+- Flux BNB addresses: `references/flux-bnb-addresses.json`
