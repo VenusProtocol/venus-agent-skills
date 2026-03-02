@@ -18,10 +18,10 @@ const ABI = [
   const rows = await resolver.getFTokensEntireData();
 
   const markets = rows.map((m) => {
-    const supplyRateBps = Number(m.supplyRate);
-    const rewardsRateRaw = Number(m.rewardsRate);
-    const rewardsRateBpsApprox = rewardsRateRaw > 100000 ? rewardsRateRaw / 1e10 : rewardsRateRaw;
-    const totalAprApprox = (supplyRateBps + rewardsRateBpsApprox) / 100;
+    const supplyRateBps = Number(m.supplyRate); // Liquidity supply rate in bps (1% = 100)
+    const rewardsRateRaw = Number(m.rewardsRate); // Rewards model rate in 1e12 precision where 1% = 1e12
+    const rewardsRateBps = rewardsRateRaw / 1e10; // exact conversion to bps
+    const totalApr = (supplyRateBps + rewardsRateBps) / 100;
     return {
       symbol: m.symbol,
       name: m.name,
@@ -33,9 +33,9 @@ const ABI = [
       totalSupplyRaw: m.totalSupply.toString(),
       supplyRateBps,
       rewardsRateRaw,
-      rewardsRateBpsApprox,
-      totalAprApprox,
-      notes: 'rewardsRate from resolver uses protocol-specific scaling; bps shown as approx',
+      rewardsRateBps,
+      totalApr,
+      notes: 'rewardsRate uses 1e12 precision in Fluid fToken code (1% = 1e12), converted exactly',
     };
   });
 

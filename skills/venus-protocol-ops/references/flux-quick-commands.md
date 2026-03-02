@@ -8,6 +8,12 @@ Protocol-specific scripts are under `scripts/flux/` (separate from Venus Core sc
 node scripts/flux/fetch_markets.js
 ```
 
+APY math used:
+- `supplyRateBps`: already bps (`1% = 100`)
+- `rewardsRateRaw`: Fluid rewards precision (`1% = 1e12`)
+- `rewardsRateBps = rewardsRateRaw / 1e10`
+- `totalApr = (supplyRateBps + rewardsRateBps) / 100`
+
 ## 2) Check wallet Flux positions
 
 ```bash
