@@ -1,76 +1,125 @@
-# Venus Protocol Ops
+# Venus Agent Skills (Venus Core + Flux)
 
-Risk-first Venus Protocol operations toolkit on BNB Chain.
+Risk-first DeFi operations toolkit on BNB Chain for OpenClaw.
 
-This repo contains an OpenClaw skill for:
-- market analytics
-- wallet exposure + health checks
-- borrow what-if simulation
-- safe execution flows for deposit / withdraw / borrow / repay
-- collateral management (enable/disable)
-- HF threshold monitoring
+This repository provides a production-oriented skill with **dual protocol support**:
+- **Venus Core Pool** operations and risk checks
+- **Flux (Fluid on BSC)** market/position/lend/withdraw workflows
 
-## Skill location
+---
+
+## Skill Location
 
 - `skills/venus-protocol-ops/`
 
-## Packaged artifact
+## Packaged Artifact
 
 - `dist/venus-protocol-ops.skill`
 
-## Core scripts
+---
 
-- `scripts/fetch_markets.py` — live market snapshot
-- `scripts/wallet_onchain_exposure.py` — onchain wallet exposure
-- `scripts/venus_check.py` — one-command market + wallet + simulation
-- `scripts/venus_deposit.js` — deposit flow (simulate/broadcast)
-- `scripts/venus_withdraw.js` — withdraw flow (simulate/broadcast)
-- `scripts/venus_borrow.js` — borrow flow (simulate/broadcast)
-- `scripts/venus_repay.js` — repay flow (simulate/broadcast)
-- `scripts/venus_collateral.js` — collateral enable/disable
-- `scripts/hf_monitor.py` — health-factor monitor
+## What the Skill Can Do
 
-## Safety defaults
+### Venus (Core default)
+- Live market snapshot and ranking
+- Onchain wallet exposure (supply/borrow/HF)
+- Borrow what-if simulation
+- Safe execution flows: deposit / withdraw / borrow / repay
+- Collateral enable/disable
+- HF monitoring
 
-- Execution scripts default to `simulate`
-- Real transactions require explicit `--confirm YES`
+### Flux (Fluid on BSC)
+- Market snapshot
+- Wallet position query
+- Lend (simulate / broadcast)
+- Withdraw (simulate / broadcast)
+- Input/signer safety checks for broadcast
+
+---
+
+## Core Scripts
+
+### Venus scripts
+- `skills/venus-protocol-ops/scripts/fetch_markets.py`
+- `skills/venus-protocol-ops/scripts/wallet_onchain_exposure.py`
+- `skills/venus-protocol-ops/scripts/venus_check.py`
+- `skills/venus-protocol-ops/scripts/venus_deposit.js`
+- `skills/venus-protocol-ops/scripts/venus_withdraw.js`
+- `skills/venus-protocol-ops/scripts/venus_borrow.js`
+- `skills/venus-protocol-ops/scripts/venus_repay.js`
+- `skills/venus-protocol-ops/scripts/venus_collateral.js`
+- `skills/venus-protocol-ops/scripts/hf_monitor.py`
+
+### Flux scripts
+- `skills/venus-protocol-ops/scripts/flux/fetch_markets.js`
+- `skills/venus-protocol-ops/scripts/flux/position.js`
+- `skills/venus-protocol-ops/scripts/flux/lend.js`
+- `skills/venus-protocol-ops/scripts/flux/withdraw.js`
+- `skills/venus-protocol-ops/scripts/flux/self_test.sh`
+- `skills/venus-protocol-ops/scripts/flux/README.md`
+
+---
+
+## Safety Defaults
+
+- Execution defaults to `--mode simulate`
+- Broadcast requires explicit `--confirm YES`
+- Flux broadcast enforces signer-wallet address match
 - Risk-first guidance; no guaranteed return claims
 
-## Quick start
+---
 
-### 1) Check market + wallet (brief)
+## Quick Start
 
-```bash
-python skills/venus-protocol-ops/scripts/venus_check.py \
-  --symbol vUSDC \
-  --wallet 0xYourWallet \
-  --output brief --lang en
-```
-
-### 2) Deposit preview
+### 1) Install dependencies (workspace root)
 
 ```bash
-node skills/venus-protocol-ops/scripts/venus_deposit.js \
-  --asset vUSDC --amount 10 --wallet 0xYourWallet --mode simulate
+cd ~/.openclaw/workspace
+npm install
 ```
 
-### 3) Withdraw preview
+### 2) Verify Venus (read-only)
 
 ```bash
-node skills/venus-protocol-ops/scripts/venus_withdraw.js \
-  --asset vUSDC --amount 1 --wallet 0xYourWallet --mode simulate
+python skills/venus-protocol-ops/scripts/fetch_markets.py --chain-id 56 --limit 20
+python skills/venus-protocol-ops/scripts/wallet_onchain_exposure.py --wallet 0xYourWallet
 ```
 
-## Install in another agent
+### 3) Verify Flux (read-only)
 
-### Option A: copy skill folder
-Copy `skills/venus-protocol-ops` into another OpenClaw workspace `skills/` directory.
+```bash
+node skills/venus-protocol-ops/scripts/flux/fetch_markets.js
+node skills/venus-protocol-ops/scripts/flux/position.js --wallet 0xYourWallet
+```
 
-### Option B: use packaged file
+### 4) Verify Flux execution (simulate only)
+
+```bash
+node skills/venus-protocol-ops/scripts/flux/lend.js --asset fUSDC --amount 1 --wallet 0xYourWallet --mode simulate
+node skills/venus-protocol-ops/scripts/flux/withdraw.js --asset fUSDC --amount 1 --wallet 0xYourWallet --mode simulate
+```
+
+### 5) Run Flux self-test
+
+```bash
+./skills/venus-protocol-ops/scripts/flux/self_test.sh 0xYourWallet
+```
+
+---
+
+## Install in Another OpenClaw Workspace
+
+### Option A: Copy skill folder
+Copy `skills/venus-protocol-ops` into the target workspace `skills/` directory.
+
+### Option B: Import packaged file
 Import `dist/venus-protocol-ops.skill`.
 
-## Notes
+---
+
+## Runtime Notes
 
 - Network: BNB Chain (`chainId=56`)
 - Default RPC: `https://bsc-dataseed.binance.org/`
-- Market API: `https://api.venus.io`
+- Venus Market API: `https://api.venus.io`
+- Keep secrets local (`.env` / `.environment`), never commit private keys
