@@ -37,8 +37,9 @@ const FTOKEN = ['function asset() view returns (address)','function deposit(uint
     return;
   }
 
-  if (!a.privateKey || a.confirm !== 'YES') throw new Error('broadcast requires --private-key and --confirm YES');
-  const signer = new ethers.Wallet(a.privateKey, provider);
+  const pk = a.privateKey || a['private-key'];
+  if (!pk || a.confirm !== 'YES') throw new Error('broadcast requires --private-key and --confirm YES');
+  const signer = new ethers.Wallet(pk, provider);
   const erc20s = erc20.connect(signer);
   const fts = fToken.connect(signer);
 

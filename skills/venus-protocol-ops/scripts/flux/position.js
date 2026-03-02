@@ -21,7 +21,6 @@ const ABI = [
 
   const positions = rows.map((x) => {
     const d = Number(x.fTokenDetails.decimals || 18);
-    const scale = 10 ** Math.min(d, 12);
     const supplyRateBps = Number(x.fTokenDetails.supplyRate); // bps (1% = 100)
     const rewardsRateRaw = Number(x.fTokenDetails.rewardsRate); // 1e12 precision (1% = 1e12)
     const rewardsRateBps = rewardsRateRaw / 1e10; // exact bps
@@ -36,7 +35,7 @@ const ABI = [
       userSharesRaw: x.userPosition.fTokenShares.toString(),
       userAssetsRaw: x.userPosition.underlyingAssets.toString(),
       userWalletBalanceRaw: x.userPosition.underlyingBalance.toString(),
-      userAssetsApprox: Number(x.userPosition.underlyingAssets) / scale,
+      userAssetsApprox: Number(ethers.formatUnits(x.userPosition.underlyingAssets, d)),
     };
   });
 

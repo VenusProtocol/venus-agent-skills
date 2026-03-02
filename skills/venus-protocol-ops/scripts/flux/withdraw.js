@@ -44,8 +44,9 @@ const ERC20 = ['function decimals() view returns (uint8)','function balanceOf(ad
     return;
   }
 
-  if (!a.privateKey || a.confirm !== 'YES') throw new Error('broadcast requires --private-key and --confirm YES');
-  const signer = new ethers.Wallet(a.privateKey, provider);
+  const pk = a.privateKey || a['private-key'];
+  if (!pk || a.confirm !== 'YES') throw new Error('broadcast requires --private-key and --confirm YES');
+  const signer = new ethers.Wallet(pk, provider);
   const fts = fToken.connect(signer);
   const tx = await fts.withdraw(amount, a.wallet, a.wallet);
   const rc = await tx.wait();
