@@ -79,7 +79,7 @@ Use this structure:
 
 ## Protocol separation
 - Venus Core scripts: `scripts/` root (e.g. `venus_*.js`, `fetch_markets.py`, `wallet_onchain_exposure.py`).
-- Flux (Fluid on BSC) scripts: `scripts/flux/`.
+- Flux (Power by Fluid) scripts: `scripts/flux/`.
 - Choose protocol-specific scripts directly so other agents can route quickly without mixing workflows.
 
 ## References

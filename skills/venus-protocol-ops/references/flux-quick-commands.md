@@ -1,4 +1,4 @@
-# Flux (Fluid on BSC) Quick Commands
+# Flux (Power by Fluid) Quick Commands
 
 Protocol-specific scripts are under `scripts/flux/` (separate from Venus Core scripts).
 

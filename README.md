@@ -4,7 +4,7 @@ Risk-first DeFi operations toolkit on BNB Chain for OpenClaw.
 
 This repository provides a production-oriented skill with **dual protocol support**:
 - **Venus Core Pool** operations and risk checks
-- **Flux (Fluid on BSC)** market/position/lend/withdraw workflows
+- **Flux (Power by Fluid)** market/position/lend/withdraw workflows
 
 ---
 
@@ -28,7 +28,7 @@ This repository provides a production-oriented skill with **dual protocol suppor
 - Collateral enable/disable
 - HF monitoring
 
-### Flux (Fluid on BSC)
+### Flux (Power by Fluid)
 - Market snapshot
 - Wallet position query
 - Lend (simulate / broadcast)
