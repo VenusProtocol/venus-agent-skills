@@ -5,9 +5,12 @@ const { ethers } = require('ethers');
 
 const a = Object.fromEntries(process.argv.slice(2).map((v,i,arr)=> v.startsWith('--') ? [v.slice(2), arr[i+1] && !arr[i+1].startsWith('--') ? arr[i+1] : 'true'] : []).filter(Boolean));
 if (!a.asset || !a.amount || !a.wallet) throw new Error('usage: --asset fUSDC --amount 1 --wallet 0x... [--mode simulate|broadcast --private-key 0x... --confirm YES]');
+if (!ethers.isAddress(a.wallet)) throw new Error('invalid wallet address');
+if (Number(a.amount) <= 0) throw new Error('amount must be > 0');
 
 const rpc = a.rpcUrl || 'https://bsc-dataseed.binance.org/';
 const mode = a.mode || 'simulate';
+if (!['simulate','broadcast'].includes(mode)) throw new Error('mode must be simulate or broadcast');
 const cfgPath = a.config || path.resolve(__dirname, '../../references/flux-bnb-addresses.json');
 const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
 const m = (cfg.fTokens || []).find(x => x.symbol.toLowerCase() === a.asset.toLowerCase());
@@ -31,6 +34,8 @@ const FTOKEN = ['function asset() view returns (address)','function deposit(uint
     { action:'check_allowance', allowance: allowance.toString(), required: amount.toString() }
   ]};
 
+  if (bal < amount) throw new Error('insufficient underlying balance for lend amount');
+
   if (mode !== 'broadcast') {
     out.steps.push({ action:'preview', note:'No tx sent in simulate mode' });
     console.log(JSON.stringify(out,null,2));
@@ -40,6 +45,7 @@ const FTOKEN = ['function asset() view returns (address)','function deposit(uint
   const pk = a.privateKey || a['private-key'];
   if (!pk || a.confirm !== 'YES') throw new Error('broadcast requires --private-key and --confirm YES');
   const signer = new ethers.Wallet(pk, provider);
+  if (signer.address.toLowerCase() !== a.wallet.toLowerCase()) throw new Error('wallet and private key address mismatch');
   const erc20s = erc20.connect(signer);
   const fts = fToken.connect(signer);
 
