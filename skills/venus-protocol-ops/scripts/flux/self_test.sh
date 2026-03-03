@@ -2,7 +2,12 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-WALLET="${1:-0xF54A4Ff2d00c45F07eBA4949F2B266554F3fE3bF}"
+WALLET="${1:-}"
+
+if [[ -z "$WALLET" ]]; then
+  echo "Usage: $0 0xYourWallet"
+  exit 1
+fi
 
 echo "[1/4] fetch_markets"
 node "$ROOT/fetch_markets.js" >/tmp/flux_markets_test.json
